@@ -33,9 +33,16 @@ sudo apt-get update && sudo apt-get install -y containerd.io
 
 # Configure containerd
 sudo mkdir -p /etc/containerd
-sudo containerd config default | sudo tee /etc/containerd/config.toml
+# sudo containerd config default | sudo tee /etc/containerd/config.toml
 
-sudo sed -i 's/systemd_cgroup = false/systemd_cgroup = true/g' /etc/containerd/config.toml
+# sudo sed -i 's/systemd_cgroup = false/systemd_cgroup = true/g' /etc/containerd/config.toml
+cat  <<EOF | sudo tee /etc/containerd/config.toml
+[debug]
+  level = "info"
+[plugins]
+  [plugins.cri]
+    systemd_cgroup = true
+EOF
 
 # Restart containerd
 sudo systemctl restart containerd

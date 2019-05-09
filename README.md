@@ -6,7 +6,7 @@ Attention, we don't deploy kata runtime from Ubuntu packages to
 simplify integration with containerd, and use the instructions from
 the KataContainers packaging project.
 
-For setting it up, you will need,
+For setting it up, you will need:
 
 - VirtualBox (Currently only tested with virtualbox)
 - Vagrant with following plugins
@@ -42,8 +42,16 @@ Switch to root user and move to vagrant shared directory and install the setup s
 ```
 
 ```
-# docker info | grep Runtime
+# sudo docker info | grep Runtime
 WARNING: No swap limit support
 Runtimes: kata-runtime runc
 Default Runtime: runc
+```
+
+```
+$ sudo crictl version
+Version:  0.1.0
+RuntimeName:  containerd
+RuntimeVersion:  1.2.5
+RuntimeApiVersion:  v1alpha2
 ```

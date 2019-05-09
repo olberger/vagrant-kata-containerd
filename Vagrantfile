@@ -77,7 +77,7 @@ Vagrant.configure("2") do |config|
   #   vb.gui = true
   #
   #   # Customize the amount of memory on the VM:
-    vb.memory = "1024"
+    vb.memory = "4096"
     vb.cpus = "2"
   end
   #
@@ -107,5 +107,5 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "containerd.sh", privileged: false 
   config.vm.provision "shell", path: "kubernetes.sh", privileged: false 
   config.vm.provision "shell", path: "calico.sh", privileged: false 
-  config.vm.provision "shell", path: "setup-kata-ubuntu.sh", privileged: false 
+  config.vm.provision "shell", path: "kata.sh", privileged: false 
 end

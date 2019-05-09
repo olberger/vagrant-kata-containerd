@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #KUBEADM_VERBOSITY=
-KUBEADM_VERBOSITY="-v 5"
+#KUBEADM_VERBOSITY="-v 5"
+KUBEADM_VERBOSITY="-v 4"
 
 # adapted from: https://www.avthart.com/posts/create-your-own-minikube-using-vagrant-and-kubeadm/ / https://gist.github.com/avthart/d050b13cad9e5a991cdeae2bf43c2ab3
 
@@ -100,12 +101,19 @@ sudo sed -i "s/IPADDR/$IPADDR/g" /root/kubeadmin-config.yaml
 
 #sudo kubeadm init -v 5 --config /root/kubeadmin-config.yaml --cri-socket /run/containerd/containerd.sock --node-name $NODENAME
 sudo kubeadm init $KUBEADM_VERBOSITY --config /root/kubeadmin-config.yaml --node-name $NODENAME
-#exit 0
 
 # Copy admin credentials to vagrant user
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown -R $USER:$USER $HOME/.kube
 
+sleep 60
+
 # remove master role taint
 kubectl taint nodes --all node-role.kubernetes.io/master-
+
+kubectl wait --timeout=300s --for=condition=Ready -n kube-system pod -l k8s-app=kube-proxy
+sleep 60
+
+kubectl wait --timeout=300s --for=condition=Ready -n kube-system pod -l component=etcd
+
