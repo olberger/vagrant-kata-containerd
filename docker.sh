@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# source: https://kubernetes.io/docs/setup/cri/#docker
+# We're installing Docker CE from Docker.com which seem to be working well with containerd and the cri plugin
+
+# Main source: https://kubernetes.io/docs/setup/cri/#docker
 
 # Install Docker CE
 ## Set up the repository:
@@ -20,7 +22,7 @@ sudo add-apt-repository \
 #sudo apt-get update && sudo apt-get install docker-ce=18.06.2~ce~3-0~ubuntu
 sudo apt-get update && sudo apt-get install -y docker-ce
 
-# Setup daemon.
+# Setup daemon to use the systemd cgroup driver
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -37,5 +39,3 @@ sudo mkdir -p /etc/systemd/system/docker.service.d
 # Restart docker.
 sudo systemctl daemon-reload
 sudo systemctl restart docker
-
-

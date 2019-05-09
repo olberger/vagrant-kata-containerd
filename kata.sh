@@ -1,11 +1,15 @@
 #!/bin/bash
 
+# Finally, install Kata-Containers
+
 # source: https://github.com/kata-containers/packaging/tree/master/kata-deploy#kubernetes-quick-start
 echo "Installing Kata-Containers"
 kubectl apply -f https://raw.githubusercontent.com/kata-containers/packaging/master/kata-deploy/kata-rbac.yaml
+
+# That fellow will configure much of the stuff
 kubectl apply -f https://raw.githubusercontent.com/kata-containers/packaging/master/kata-deploy/kata-deploy.yaml
 
-
+# Again the progress bar
 print_progress() {
     percentage=$1
     chars=$(echo "40 * $percentage"/1| bc)
@@ -28,9 +32,14 @@ done
 echo -ne "$pc%\033[0K\r"
 echo -ne $(print_progress 1) "${GREEN}Done.${NC}\n"
 
+
+# Now, configure the Kata runtime
+# This should be the "modern" way of doing so compatible with the runtimeClasses recently introduced in k8s
+
+# We reuse the values previously set in the config file, and add the kata stuff
 cat  <<EOF | sudo tee /etc/containerd/config.toml
 [debug]
-  level = "debug"
+  level = "info"
 [plugins]
   [plugins.cri]
     systemd_cgroup = true
@@ -38,25 +47,25 @@ cat  <<EOF | sudo tee /etc/containerd/config.toml
       [plugins.cri.containerd.runtimes.kata]
         runtime_type = "io.containerd.kata.v2"
 EOF
-      # [plugins.cri.containerd.untrusted_workload_runtime]
-      #   runtime_type = "io.containerd.kata.v2"
-      #   runtime_engine = ""
-      #   runtime_root = ""
 
 # Restart containerd
 sudo systemctl restart containerd
 
+# This is no longer needed, as runtimeClasses are supported already
+#kubectl get runtimeclasses
 #kubectl apply -f https://raw.githubusercontent.com/kubernetes/node-api/master/manifests/runtimeclass_crd.yaml
+
+# Bind the kata and kata-qemu runtime classes to their handlers (the plugins.cri.containerd.runtimes above ?)
 #kubectl apply -f https://raw.githubusercontent.com/clearlinux/cloud-native-setup/master/clr-k8s-examples/8-kata/kata-qemu-runtimeClass.yaml
 kubectl apply -f https://raw.githubusercontent.com/kata-containers/packaging/master/kata-deploy/k8s-1.14/kata-qemu-runtimeClass.yaml
 
-# kubectl get runtimeclasses
-
+# Wait until it's deployed
 kubectl wait --timeout=180s --for=condition=Ready -n kube-system pod -l name=kata-deploy
 
-# sudo crictl info
+# From now on, that should be working.
 
-# Failed create pod sandbox: rpc error: code = Unknown desc = failed to get sandbox runtime: no runtime for "kata-qemu" is configured
+# Check the CRI config with:
+# sudo crictl info
 
 # $ cat > pod-kata.yaml << EOF
 # apiVersion: v1
@@ -71,3 +80,7 @@ kubectl wait --timeout=180s --for=condition=Ready -n kube-system pod -l name=kat
 # EOF
 # $ kubectl apply -f pod-kata.yaml
 # pod/foobar-kata created
+
+# Or with the example in /vagrant/ :
+# kubectl apply -f nginx-untrusted.yaml
+# kubectl describe pod nginx-untrusted

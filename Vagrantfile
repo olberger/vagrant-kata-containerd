@@ -4,6 +4,8 @@
 BOX_IMAGE = "ubuntu/xenial64"
 #BOX_IMAGE = "ubuntu/bionic64"
 HOSTNAME = "kata-containerd-cri"
+
+# Change this to adjust to your host's devices
 #BRIDGE_IF = "enp6s0"
 #BRIDGE_IF = "wlp5s0"
 BRIDGE_IF = "wlp2s0"
@@ -76,9 +78,12 @@ Vagrant.configure("2") do |config|
   #   # Display the VirtualBox GUI when booting the machine
   #   vb.gui = true
   #
-  #   # Customize the amount of memory on the VM:
+    #   # Customize the amount of memory on the VM:
+    # You may choose different values but qemu for kata-containers will need some RAM
     vb.memory = "4096"
     vb.cpus = "2"
+    # Activate nested virtualization support if you have an intel processor, which will be helpfull for qemu/kvm inside the VM
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
   end
   #
   # View the documentation for the provider you are using for more
@@ -88,6 +93,7 @@ Vagrant.configure("2") do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
+    # I had to disable IPv6, but this may be useless for others
     echo  "Disabling IPv6"
     echo "net.ipv6.conf.all.disable_ipv6 = 1
     net.ipv6.conf.default.disable_ipv6 = 1
@@ -95,17 +101,30 @@ Vagrant.configure("2") do |config|
     net.ipv6.conf.eth0.disable_ipv6 = 1" >> /etc/sysctl.conf
     sysctl -p
 
+    # Install base tools that will be needed later
     apt-get -y install apt-transport-https ca-certificates wget software-properties-common
 
+    # Update to latest Ubuntu packages
     apt-get update && apt-get -y full-upgrade 
   SHELL
 
-  # trigger reload
+  # Then reboot the VM
   config.vm.provision :reload
 
-  config.vm.provision "shell", path: "docker.sh", privileged: false 
-  config.vm.provision "shell", path: "containerd.sh", privileged: false 
-  config.vm.provision "shell", path: "kubernetes.sh", privileged: false 
-  config.vm.provision "shell", path: "calico.sh", privileged: false 
+  # Now the provisionning of the cluster
+
+  # First install Docker
+  config.vm.provision "shell", path: "docker.sh", privileged: false
+
+  # Then make sure containerd is installed properly
+  config.vm.provision "shell", path: "containerd.sh", privileged: false
+
+  # Install Kubernetes
+  config.vm.provision "shell", path: "kubernetes.sh", privileged: false
+
+  # Install a CNI network component (others may fit ?)
+  config.vm.provision "shell", path: "calico.sh", privileged: false
+
+  # Finally install KataContainers
   config.vm.provision "shell", path: "kata.sh", privileged: false 
 end

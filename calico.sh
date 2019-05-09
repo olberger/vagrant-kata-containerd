@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Activate a CNI component for the network
+
+# This is needed for progress bar display
 sudo apt-get install -y bc
 
 echo "Deploy calico network"
@@ -8,6 +11,7 @@ kubectl apply -f https://docs.projectcalico.org/v3.6/getting-started/kubernetes/
 
 sleep 5
 
+# Progres bar hack borowed from Antidote/selfmedicate
 print_progress() {
     percentage=$1
     chars=$(echo "40 * $percentage"/1| bc)
