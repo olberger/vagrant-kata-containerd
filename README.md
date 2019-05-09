@@ -1,3 +1,10 @@
+# Vagrant running k8s with KataContainers on Ubuntu 16.04 with containerd
+
+Install KataContainers in a k8s cluster, with containerd and CRI.
+
+Attention, we don't deploy kata runtime from Ubuntu packages to
+simplify integration with containerd, and use the instructions from
+the KataContainers packaging project.
 
 For setting it up, you will need,
 
@@ -6,6 +13,7 @@ For setting it up, you will need,
   - vagrant-vbguest
   - vagrant-hostmanager
   - vagrant-share
+  - vagrant-reload (handles reboot during provisionning)
 
 To Install the plugins, use following command,
 
@@ -14,13 +22,12 @@ vagrant plugin install &lt;plugin-name&gt;
 The setup instructions are simple, once you have installed the prereqs, clone the repo
 
 ```
-git clone https://github.com/coolsvap/vagrant-kata-dev
+git clone https://github.com/olberger/vagrant-kata-dev
 ```
 
 Edit the Vagrantfile to update details
 
 1. Update the bridge interface so the box will have IP address from your local network using DHCP. If you do not update, it will ask for the interface name you start machine.
-2. Update the golang version, currently its at 1.9.3
 
 Create the vagrant box with following command
 
@@ -33,11 +40,6 @@ Once the box is started, login to the box using following command
 Switch to root user and move to vagrant shared directory and install the setup script
 
 ```
-sudo su
-cd /vagrant
-./setup-kata-dev.sh
-```
-It will perform the steps required to setup the dev environment. Verify the setup done correctly with following steps,
 
 ```
 # docker info | grep Runtime

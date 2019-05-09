@@ -2,11 +2,11 @@
 # vi: set ft=ruby :
 
 BOX_IMAGE = "ubuntu/xenial64"
-HOSTNAME = "kata-dev"
-BRIDGE_IF = "enp6s0"
+#BOX_IMAGE = "ubuntu/bionic64"
+HOSTNAME = "kata-containerd-cri"
+#BRIDGE_IF = "enp6s0"
 #BRIDGE_IF = "wlp5s0"
-
-GO_VER = "1.9.3"
+BRIDGE_IF = "wlp2s0"
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
   #
   #   # Customize the amount of memory on the VM:
     vb.memory = "1024"
-    vb.cpus = "1"
+    vb.cpus = "2"
   end
   #
   # View the documentation for the provider you are using for more
@@ -88,27 +88,24 @@ Vagrant.configure("2") do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
+    echo  "Disabling IPv6"
+    echo "net.ipv6.conf.all.disable_ipv6 = 1
+    net.ipv6.conf.default.disable_ipv6 = 1
+    net.ipv6.conf.lo.disable_ipv6 = 1
+    net.ipv6.conf.eth0.disable_ipv6 = 1" >> /etc/sysctl.conf
+    sysctl -p
+
     apt-get -y install apt-transport-https ca-certificates wget software-properties-common
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-    sh -c "echo 'deb http://download.opensuse.org/repositories/home:/clearcontainers:/clear-containers-3/xUbuntu_$(lsb_release -rs)/ /' >> /etc/apt/sources.list.d/clear-containers.list"
-    wget -qO - http://download.opensuse.org/repositories/home:/clearcontainers:/clear-containers-3/xUbuntu_$(lsb_release -rs)/Release.key | sudo apt-key add -
-    wget -qO - https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    if [ ! -f /tmp/go#{GO_VER}.linux-amd64.tar.gz ]
-    then
-      wget https://dl.google.com/go/go#{GO_VER}.linux-amd64.tar.gz -O /tmp/go#{GO_VER}.linux-amd64.tar.gz
-      tar -C /usr/local -xzf /tmp/go#{GO_VER}.linux-amd64.tar.gz
-    fi
 
     apt-get update && apt-get -y full-upgrade 
-    apt-get -y install docker-ce make gcc cc-runtime cc-proxy cc-shim
-    systemctl enable docker.service
-    systemctl restart docker.service
-
-    mkdir -p /root/go/{bin,pkg,src}
-    echo "export GOPATH=$HOME/go" >> /root/.bashrc
-    echo "export KATA_RUNTIME=cc" >> /root/.bashrc
-    echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> /etc/profile
-    echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> /root/.bashrc
-
   SHELL
+
+  # trigger reload
+  config.vm.provision :reload
+
+  config.vm.provision "shell", path: "docker.sh", privileged: false 
+  config.vm.provision "shell", path: "containerd.sh", privileged: false 
+  config.vm.provision "shell", path: "kubernetes.sh", privileged: false 
+  config.vm.provision "shell", path: "calico.sh", privileged: false 
+  config.vm.provision "shell", path: "setup-kata-ubuntu.sh", privileged: false 
 end
