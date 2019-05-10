@@ -1,8 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-BOX_IMAGE = "ubuntu/xenial64"
-#BOX_IMAGE = "ubuntu/bionic64"
+#BOX_IMAGE = "ubuntu/xenial64"
+BOX_IMAGE = "ubuntu/bionic64"
 HOSTNAME = "kata-containerd-cri"
 
 # Change this to adjust to your host's devices
