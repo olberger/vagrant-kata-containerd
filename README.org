@@ -7,6 +7,13 @@ Attention, we don't deploy kata runtime from Ubuntu packages to simplify
 integration with containerd, and use the instructions from the
 KataContainers packaging project.
 
+This is based on an original Vagrant environment made by Swapnil
+Kulkarn : https://github.com/coolsvap/vagrant-kata-dev, which was
+meant to install the KataContainers dev env.
+
+* Installation
+
+** Prerequisites
 For setting it up, you will need:
 
 - VirtualBox (Currently only tested with virtualbox)
@@ -22,7 +29,7 @@ To Install the plugins, use following command,
 vagrant plugin install <plugin-name>
 #+END_SRC
 
-
+** Install
 The setup instructions are simple, once you have installed the prereqs,
 clone the repo
 
@@ -37,6 +44,8 @@ Edit the Vagrantfile to update details
    interface name you start machine.
 
 Create the vagrant box with following command
+
+** Run and play
 
 #+BEGIN_SRC sh
 vagrant up
