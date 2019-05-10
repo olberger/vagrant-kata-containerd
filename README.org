@@ -1,0 +1,72 @@
+#+TITLE: Vagrant running k8s with KataContainers on Ubuntu 18.04 with containerd
+
+
+Install KataContainers in a k8s cluster, with containerd and CRI.
+
+Attention, we don't deploy kata runtime from Ubuntu packages to simplify
+integration with containerd, and use the instructions from the
+KataContainers packaging project.
+
+For setting it up, you will need:
+
+- VirtualBox (Currently only tested with virtualbox)
+- Vagrant with following plugins:
+  - vagrant-vbguest
+  - vagrant-hostmanager
+  - vagrant-share
+  - vagrant-reload (handles reboot during provisionning)
+
+To Install the plugins, use following command,
+
+#+BEGIN_SRC sh
+vagrant plugin install <plugin-name>
+#+END_SRC
+
+
+The setup instructions are simple, once you have installed the prereqs,
+clone the repo
+
+#+BEGIN_EXAMPLE
+    git clone https://github.com/olberger/vagrant-kata-containerd.git
+#+END_EXAMPLE
+
+Edit the Vagrantfile to update details
+
+1. Update the bridge interface so the box will have IP address from your
+   local network using DHCP. If you do not update, it will ask for the
+   interface name you start machine.
+
+Create the vagrant box with following command
+
+#+BEGIN_SRC sh
+vagrant up
+#+END_SRC
+
+
+Once the box is started, login to the box using following command
+
+#+BEGIN_SRC sh 
+vagrant ssh
+#+END_SRC
+
+You can now test stuff
+
+#+BEGIN_SRC sh
+sudo docker info | grep Runtime
+#+END_SRC
+
+#+BEGIN_EXAMPLE
+WARNING: No swap limit support 
+Runtimes: kata-runtime runc Default
+Runtime: runc
+#+END_EXAMPLE
+
+#+BEGIN_SRC sh
+sudo crictl version
+#+END_SRC
+#+BEGIN_EXAMPLE
+Version: 0.1.0 
+RuntimeName: containerd
+RuntimeVersion: 1.2.5 
+RuntimeApiVersion: v1alpha2
+#+END_EXAMPLE
