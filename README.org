@@ -1,4 +1,4 @@
-#+TITLE: Vagrant running k8s with KataContainers on Ubuntu 18.04 with containerd
+#+TITLE: Vagrant + libvirt/kvm running k8s with KataContainers on Ubuntu 18.04 with containerd
 
 
 Install KataContainers in a k8s cluster, with containerd and CRI.
@@ -10,6 +10,15 @@ KataContainers packaging project.
 This is based on an original Vagrant environment made by Swapnil
 Kulkarn : https://github.com/coolsvap/vagrant-kata-dev, which was
 meant to install the KataContainers dev env.
+* Libvirt-KVM Vagrant + nested virtualization
+
+For this to work on your system, you should have a Linux system with
+working nested virtualization, in order to let libvirt run the Vagrant
+VM with qemu/kvm.
+
+Note that inside that VM which runs the k8s cluster, other qemu VMs
+will be started, again with kvm to run the KataContainers payloads, so
+nested virtualization must be enabled.
 
 * Installation
 
@@ -18,6 +27,7 @@ For setting it up, you will need:
 
 - VirtualBox (Currently only tested with virtualbox)
 - Vagrant with following plugins:
+  - vagrant-libvirt + KVM2 driver
   - vagrant-vbguest
   - vagrant-hostmanager
   - vagrant-share
