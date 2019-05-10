@@ -1,14 +1,26 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-#BOX_IMAGE = "ubuntu/xenial64"
-BOX_IMAGE = "ubuntu/bionic64"
+#BOX_IMAGE = "ubuntu/bionic64"
+BOX_IMAGE = "generic/ubuntu1804"
+
 HOSTNAME = "kata-containerd-cri"
 
 # Change this to adjust to your host's devices
 #BRIDGE_IF = "enp6s0"
 #BRIDGE_IF = "wlp5s0"
 BRIDGE_IF = "wlp2s0"
+
+required_plugins = %w(vagrant-libvirt)
+
+required_plugins.each do |plugin|
+  need_restart = false
+  unless Vagrant.has_plugin? plugin
+    system "vagrant plugin install #{plugin}"
+    need_restart = true
+  end
+  exec "vagrant #{ARGV.join(' ')}" if need_restart
+end
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -30,13 +42,13 @@ Vagrant.configure("2") do |config|
   config.hostmanager.manage_host = true
   config.hostmanager.ignore_private_ip = false
 
-  config.hostmanager.ip_resolver = proc do |machine|
-    result = ""
-    machine.communicate.execute("hostname -I | cut -d ' ' -f 2") do |type, data|
-      result << data if type == :stdout
-    end
-    ip = result.split("\n").first[/(\d+\.\d+\.\d+\.\d+)/, 1]
-  end
+  # config.hostmanager.ip_resolver = proc do |machine|
+  #   result = ""
+  #   machine.communicate.execute("hostname -I | cut -d ' ' -f 2") do |type, data|
+  #     result << data if type == :stdout
+  #   end
+  #   ip = result.split("\n").first[/(\d+\.\d+\.\d+\.\d+)/, 1]
+  # end
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -61,7 +73,8 @@ Vagrant.configure("2") do |config|
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
   # your network.
-  config.vm.network "public_network", type: "dhcp", :bridge => BRIDGE_IF
+#  config.vm.network "public_network", type: "dhcp", :bridge => BRIDGE_IF
+  config.vm.network "private_network", type: "dhcp",  :model_type => "virtio", :autostart => true
   # config.vm.network "public_network"
 
   # Share an additional folder to the guest VM. The first argument is
@@ -85,6 +98,16 @@ Vagrant.configure("2") do |config|
     # Activate nested virtualization support if you have an intel processor, which will be helpfull for qemu/kvm inside the VM
     vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
   end
+
+  config.vm.provider "libvirt" do |provider|
+    provider.memory = 6144
+    provider.cpus = 2
+    provider.driver = "kvm"
+    provider.disk_bus = "scsi"
+    provider.machine_virtual_size = 64
+    provider.video_vram = 64
+  end
+
   #
   # View the documentation for the provider you are using for more
   # information on available options.
